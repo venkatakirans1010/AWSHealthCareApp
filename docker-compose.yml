@@ -1,0 +1,27 @@
+# Local development database. Start it with: docker compose up -d postgres
+# POSTGRES_PASSWORD is read from the git-ignored .env file in this directory.
+# SQL initialization files run only when the postgres-data volume is empty.
+# Update an existing database with: python scripts/init_db.py
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: healthcare-claims-postgres
+    environment:
+      POSTGRES_DB: healthcare_claims
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in the .env file at the project root}
+    ports:
+      - "127.0.0.1:5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ./src/database/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro
+      - ./src/database/migrations/001_claim_extractions_normalization.sql:/docker-entrypoint-initdb.d/02-claim-extractions-normalization.sql:ro
+      - ./src/database/migrations/002_day6_schema_reconciliation.sql:/docker-entrypoint-initdb.d/03-day6-schema-reconciliation.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d healthcare_claims"]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+
+volumes:
+  postgres-data:

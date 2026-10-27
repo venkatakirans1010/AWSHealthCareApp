@@ -1,0 +1,4 @@
+{
+  "INPATIENT:99223": {"typical_amount": "45000.00", "description": "Synthetic initial inpatient care baseline"},
+  "OUTPATIENT:99213": {"typical_amount": "2500.00", "description": "Synthetic established outpatient visit baseline"}
+}

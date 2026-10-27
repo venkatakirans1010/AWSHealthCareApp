@@ -1,0 +1,12 @@
+{
+  "members": {
+    "MEM1001":{"patient_id":"PAT1001","payer_id":"PAY1001","eligibility_status":"ACTIVE","policy":{"policy_id":"POL1001","effective_from":"2026-01-01","effective_to":"2026-12-31","coverage":{"INPATIENT":{"status":"COVERED","authorization":"NOT_REQUIRED"},"OUTPATIENT":{"status":"COVERED","authorization":"NOT_REQUIRED"}}},"authorizations":[]},
+    "MEM1002":{"patient_id":"PAT1002","payer_id":"PAY1001","eligibility_status":"INACTIVE","policy":{"policy_id":"POL1002","effective_from":"2026-01-01","effective_to":"2026-06-30","coverage":{"OUTPATIENT":{"status":"COVERED","authorization":"NOT_REQUIRED"}}},"authorizations":[]},
+    "MEM1003":{"patient_id":"PAT1003","payer_id":"PAY1001","eligibility_status":"ACTIVE","policy":{"policy_id":"POL1003","effective_from":"2026-01-01","effective_to":"2026-12-31","coverage":{"INPATIENT":{"status":"COVERED","authorization":"REQUIRED"}}},"authorizations":null}
+  },
+  "claims": {
+    "CLM10001":{"member_id":"MEM1001","payer_id":"PAY1001","claim_type":"INPATIENT","service_date":"2026-09-20","procedure_code":"99223","amount":45000,"status":"APPROVED","potential_duplicate_of":null},
+    "CLM10002":{"member_id":"MEM1001","payer_id":"PAY1001","claim_type":"INPATIENT","service_date":"2026-09-20","procedure_code":"99223","amount":45000,"status":"FRAUD_REVIEW","potential_duplicate_of":"CLM10001"},
+    "CLM10003":{"member_id":"MEM1002","payer_id":"PAY1001","claim_type":"OUTPATIENT","service_date":"2026-05-12","procedure_code":"99213","amount":2500,"status":"DENIED","potential_duplicate_of":null}
+  }
+}

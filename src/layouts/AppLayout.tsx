@@ -1,0 +1,2 @@
+import {useState} from 'react';import {Outlet} from 'react-router-dom';import {Sidebar} from '../components/layout/Sidebar';import {TopNavbar} from '../components/layout/TopNavbar';
+export function AppLayout(){const [open,setOpen]=useState(false);return <div className="app-shell"><Sidebar open={open} onClose={()=>setOpen(false)}/><div className="app-main"><TopNavbar onMenu={()=>setOpen(true)}/><main><Outlet/></main></div></div>}

@@ -1,0 +1,162 @@
+name: Agent ECR
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - "app/**"
+      - "tests/**"
+      - "Dockerfile.agent"
+      - "requirements.txt"
+      - ".github/workflows/agent-ecr.yml"
+
+permissions:
+  id-token: write
+  contents: read
+
+env:
+  DEFAULT_AWS_REGION: ap-south-1
+  DEFAULT_ECR_REPOSITORY_PREFIX: healthcare-claims
+
+jobs:
+  test-agent:
+    name: Agent unit tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r requirements.txt
+
+      - name: Run agent tests
+        env:
+          AWS_REGION: ap-south-1
+        run: python -m pytest -q
+
+  build-and-push:
+    name: Build ${{ matrix.agent }}
+    needs: test-agent
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        agent:
+          - document-analysis
+          - policy-validation
+          - medical-coding
+          - fraud-detection
+          - claims-decision
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Resolve configuration
+        id: config
+        shell: bash
+        env:
+          CONFIGURED_REGION: ${{ vars.AWS_REGION }}
+          CONFIGURED_PREFIX: ${{ vars.ECR_REPOSITORY_PREFIX }}
+          AGENT: ${{ matrix.agent }}
+        run: |
+          set -euo pipefail
+          echo "region=${CONFIGURED_REGION:-$DEFAULT_AWS_REGION}" >> "$GITHUB_OUTPUT"
+          PREFIX="${CONFIGURED_PREFIX:-$DEFAULT_ECR_REPOSITORY_PREFIX}"
+          echo "repository=${PREFIX}-${AGENT}" >> "$GITHUB_OUTPUT"
+
+      - name: Validate required configuration
+        shell: bash
+        env:
+          AWS_ROLE: ${{ secrets.AWS_ROLE_TO_ASSUME }}
+        run: |
+          set -euo pipefail
+          test -n "$AWS_ROLE" || { echo "AWS_ROLE_TO_ASSUME is missing"; exit 1; }
+          test -f Dockerfile.agent || { echo "Dockerfile.agent not found"; exit 1; }
+          test -f requirements.txt || { echo "requirements.txt not found"; exit 1; }
+
+      - name: Configure AWS credentials (OIDC)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME }}
+          aws-region: ${{ steps.config.outputs.region }}
+
+      - name: Verify AWS identity
+        run: aws sts get-caller-identity
+
+      - name: Ensure ECR repository
+        shell: bash
+        env:
+          AWS_REGION: ${{ steps.config.outputs.region }}
+          ECR_REPOSITORY: ${{ steps.config.outputs.repository }}
+        run: |
+          set -euo pipefail
+          if aws ecr describe-repositories \
+            --repository-names "$ECR_REPOSITORY" \
+            --region "$AWS_REGION" >/dev/null 2>&1; then
+            echo "ECR repository exists: $ECR_REPOSITORY"
+          else
+            echo "Creating ECR repository: $ECR_REPOSITORY"
+            aws ecr create-repository \
+              --repository-name "$ECR_REPOSITORY" \
+              --region "$AWS_REGION" \
+              --image-scanning-configuration scanOnPush=true \
+              --image-tag-mutability IMMUTABLE \
+              --encryption-configuration encryptionType=AES256 \
+              --tags \
+                Key=project,Value=healthcare-claims-ai \
+                Key=managed-by,Value=github-actions \
+                Key=agent,Value="${{ matrix.agent }}"
+          fi
+          aws ecr put-image-tag-mutability \
+            --repository-name "$ECR_REPOSITORY" \
+            --image-tag-mutability IMMUTABLE \
+            --region "$AWS_REGION" >/dev/null
+
+      - name: Login to Amazon ECR
+        id: ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Set image metadata
+        id: meta
+        shell: bash
+        env:
+          REGISTRY: ${{ steps.ecr.outputs.registry }}
+          ECR_REPOSITORY: ${{ steps.config.outputs.repository }}
+        run: |
+          set -euo pipefail
+          SHA_TAG="sha-${GITHUB_SHA:0:12}"
+          echo "sha_tag=$SHA_TAG" >> "$GITHUB_OUTPUT"
+          echo "image_uri=$REGISTRY/$ECR_REPOSITORY:$SHA_TAG" >> "$GITHUB_OUTPUT"
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build and push image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ./Dockerfile.agent
+          platforms: linux/amd64
+          push: true
+          build-args: |
+            AGENT_RUNTIME=${{ matrix.agent }}
+          tags: ${{ steps.meta.outputs.image_uri }}
+          cache-from: type=gha,scope=${{ matrix.agent }}
+          cache-to: type=gha,mode=max,scope=${{ matrix.agent }}
+
+      - name: Publish image URI
+        run: |
+          echo "### ${{ matrix.agent }} ECR image" >> "$GITHUB_STEP_SUMMARY"
+          echo '${{ steps.meta.outputs.image_uri }}' >> "$GITHUB_STEP_SUMMARY"

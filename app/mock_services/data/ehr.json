@@ -1,0 +1,11 @@
+{
+  "patients": {
+    "PAT1001": {"demographics": {"patient_id":"PAT1001","member_id":"MEM1001","name":"John Smith","date_of_birth":"1974-05-12","gender":"M"},"history":[{"date":"2026-09-20","type":"INPATIENT","diagnoses":[{"code":"J18.9","description":"Pneumonia, unspecified organism","diagnosed_on":"2026-09-20"}],"clinical_note":"Synthetic admission for pneumonia training scenario."}],"medications":[{"name":"Amlodipine","dose":"5 mg daily","status":"ACTIVE","start_date":"2025-01-10","end_date":null}]},
+    "PAT1002": {"demographics": {"patient_id":"PAT1002","member_id":"MEM1002","name":"Maria Garcia","date_of_birth":"1988-03-21","gender":"F"},"history":[{"date":"2026-07-15","type":"OUTPATIENT","diagnoses":[{"code":"I10","description":"Essential (primary) hypertension","diagnosed_on":"2026-07-15"}],"clinical_note":"Synthetic routine follow-up."}],"medications":[]},
+    "PAT1003": {"demographics": {"patient_id":"PAT1003","member_id":"MEM1003","name":"Alex Taylor","date_of_birth":"1992-11-02","gender":"X"},"history":[],"medications":[{"name":"Amoxicillin","dose":"500 mg","status":"DISCONTINUED","start_date":"2025-04-01","end_date":"2025-04-08"}]}
+  },
+  "providers": {
+    "PROV1001":{"provider_id":"PROV1001","name":"ABC Hospital","specialty":"General Hospital","npi":"1000000001","network_status":"IN_NETWORK"},
+    "PROV1002":{"provider_id":"PROV1002","name":"Demo Clinic","specialty":"Primary Care","npi":"1000000002","network_status":"OUT_OF_NETWORK"}
+  }
+}

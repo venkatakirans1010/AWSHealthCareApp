@@ -1,0 +1,2 @@
+import {ChevronDown} from 'lucide-react';import {useState,type ReactNode} from 'react';
+export function ExpandableCard({title,meta,children,defaultOpen=false}:{title:string;meta?:ReactNode;children:ReactNode;defaultOpen?:boolean}){const [open,setOpen]=useState(defaultOpen);return <article className="expand-card"><button className="expand-head" onClick={()=>setOpen(!open)} aria-expanded={open}><span><strong>{title}</strong>{meta}</span><ChevronDown className={open?'rotated':''} size={18}/></button>{open&&<div className="expand-body">{children}</div>}</article>}

@@ -1,0 +1,12 @@
+{
+  "ICD10": {
+    "J18.9":{"description":"Pneumonia, unspecified organism","active":true},
+    "I10":{"description":"Essential (primary) hypertension","active":true},
+    "M54.5":{"description":"Low back pain","active":false}
+  },
+  "CPT": {
+    "99213":{"description":"Established patient office or outpatient visit","active":true},
+    "99223":{"description":"Initial hospital inpatient or observation care","active":true},
+    "93000":{"description":"Electrocardiogram","active":true}
+  }
+}

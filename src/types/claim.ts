@@ -1,0 +1,7 @@
+export type ClaimStatus = 'PENDING'|'RECEIVED'|'PROCESSING'|'APPROVED'|'DENIED'|'REQUEST_INFORMATION'|'FRAUD_REVIEW'|'FAILED';
+export type RiskLevel = 'LOW'|'MEDIUM'|'HIGH';
+export interface Claim { id:string; patientId:string; patientName:string; providerId:string; providerName:string; payerId:string; payerName:string; policyId:string; diagnosis:string; diagnosisDescription:string; procedure:string; procedureDescription:string; amount:number; submittedAt:string; serviceDate:string; status:ClaimStatus; expectedStatus:ClaimStatus; risk:RiskLevel; fraudScore:number; eligibility:'ACTIVE'|'INACTIVE'; coverage:'YES'|'NO'; authorization:'REQUIRED'|'NOT REQUIRED'; authorizationEvidence:'PRESENT'|'MISSING'|'NOT APPLICABLE'; coveragePercent:number; patientResponsibility:number; processingTime:string; document:{filename:string;type:string;uploadStatus:string;s3Key:string}; finalDecision:string; confidence:number; }
+export interface CreateClaimPayload { patientId:string; providerId:string; payerId:string; policyId:string; serviceDate:string; filename:string; }
+export interface ClaimApiResponse { claim_id:string; patient_id:string; provider_id:string; payer_id:string; claim_type:string; document_name:string; status:ClaimStatus; created_at:string; updated_at:string; s3_bucket:string|null; s3_object_key:string|null; }
+export interface ClaimListApiResponse { claims:ClaimApiResponse[]; total:number; }
+export interface ClaimUploadResponse { claim_id:string; filename:string; s3_bucket:string; s3_object_key:string; status:'UPLOADED'; }

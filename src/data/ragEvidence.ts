@@ -1,0 +1,3 @@
+import type { RAGEvidence } from '../types/rag';
+const docs=[['policy_abc_inpatient.pdf',12,.92,'Eligible inpatient pneumonia treatment is covered when medically necessary.','Policy'],['claims_processing_rules.pdf',8,.87,'Initial hospital care code 99223 is payable for eligible inpatient admissions.','Processing rule'],['policy_abc_general.pdf',21,.81,'Covered services are reimbursed at 80% after eligibility verification.','Policy'] ] as const;
+export const ragEvidence:RAGEvidence[]=docs.map((d,i)=>({id:`RAG${i+1}`,claimId:'CLM10001',query:'Is inpatient pneumonia treatment covered under POL1001?',documentName:d[0],page:d[1],relevance:d[2],excerpt:d[3],documentType:d[4]}));
